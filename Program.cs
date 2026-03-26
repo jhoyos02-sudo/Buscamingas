@@ -34,22 +34,55 @@ namespace Buscamingas
 
             public Tablero(int fils, int cols, int numMinas)
             {
-
+                casilla = new Casilla[fils,cols];
+                for (int i = 0; i < fils; i++)
+                {
+                    for (int j = 0; j < cols; j++)
+                    {
+                        casilla[i, j].estado = 'o';
+                        casilla[i,j].mina = false;
+                    }
+                }
+                ponMinas1(numMinas);
             }
 
             private void ponMinas1(int nMinas)
             {
+                int i = 0;
+                while (i < nMinas)
+                {
+                    int x = rnd.Next(0, fils);
+                    int y = rnd.Next(0, cols);
 
+                    if (casilla[x, y].mina == false)
+                    {
+                        casilla[x,y].mina = true;
+                        i++;
+                    }
+                }
             }
 
             public Tablero(int fils, int cols, (int, int)[] posMinas)
             {
+                casilla = new Casilla[fils, cols];
+                for (int i = 0; i < fils; i++)
+                {
+                    for (int j = 0; j < cols; j++)
+                    {
+                        casilla[i, j].estado = 'o';
+                        casilla[i, j].mina = false;
+                    }
+                }
 
+                for (int j = 0; j < posMinas.Length; j++)
+                {
+                    casilla[posMinas[j].Item1, posMinas[j].Item2].mina = true;
+                }
             }
 
             public void activateDEBUG()
             {
-
+                debug = true;
             }
 
             public void Render(bool bomba)
@@ -59,7 +92,7 @@ namespace Buscamingas
 
             public void MueveCursor(Coor dir)
             {
-
+                //cursor += dir;  (esto si hacemos una sobrecarga del operador += en la clase coor)
             }
 
             public void MarcaMina()
@@ -69,18 +102,19 @@ namespace Buscamingas
 
             public bool ClickCasilla()
             {
-
+                
                 return true;
             }
 
             private int MinasAlrededor(int x, int y)
             {
-
+                // usar clamp
+                return 0;
             }
 
             private void DescubreAdyacentes()
             {
-
+                // importante hacer una separación entre visitadas y pendientes (con dos arrays de posiciones)
             }
 
             public bool Terminado()
