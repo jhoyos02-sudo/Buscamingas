@@ -94,7 +94,7 @@ namespace Buscamingas
 
             public void MueveCursor(Coor dir)
             {
-                cursor += dir;  //(esto si hacemos una sobrecarga del operador += en la clase coor)
+                cursor += dir;  
             }
 
             public void MarcaMina()
@@ -153,8 +153,23 @@ namespace Buscamingas
 
             public bool Terminado()
             {
+                int i = 0, j = 0;
+                bool ok = true;
 
-                return true;
+                while (i < fils && ok)
+                {
+                    while (j < cols)
+                    {
+                        if (!casilla[cursor.X, cursor.Y].mina && casilla[cursor.X, cursor.Y].estado == 'o')
+                        {
+                            ok = false;
+                        }
+                        j++;
+                    }
+                    i++;
+                    j = 0;
+                }
+                return ok;                
             }
         }
 
