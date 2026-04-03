@@ -1,4 +1,6 @@
-﻿using System.Drawing;
+﻿// Javier Hoyos Giunta
+// Hector Prous Arroyo
+using System.Drawing;
 using Coordinates;
 
 namespace Buscamingas
@@ -97,13 +99,45 @@ namespace Buscamingas
 
             public void MarcaMina()
             {
+                if (casilla[cursor.X, cursor.Y].estado == 'o')
+                {
+                    casilla[cursor.X, cursor.Y].estado = '*';
+                    nMarcadas++;
+                }
+                else if (casilla[cursor.X, cursor.Y].estado == '*') 
+                {
+                    casilla[cursor.X, cursor.Y].estado = 'o'; 
+                    nMarcadas--;
+                }
 
             }
 
             public bool ClickCasilla()
             {
-                
-                return true;
+                if (casilla[cursor.X, cursor.Y].estado == 'o')
+                {
+                    if (casilla[cursor.X, cursor.Y].mina)
+                    {
+                        casilla[cursor.X, cursor.Y].estado = 'x';
+                    }
+                    else
+                    {
+                        int minas = MinasAlrededor(cursor.X, cursor.Y);
+
+                        if (minas == 0)
+                        {
+                            casilla[cursor.X, cursor.Y].estado = '.';
+                            DescubreAdyacentes();
+                        }
+
+                        else
+                        {
+                            char c = (char)minas;
+                            casilla[cursor.X, cursor.Y].estado = c;
+                        }
+                    }
+                }
+                return casilla[cursor.X, cursor.Y].mina;
             }
 
             private int MinasAlrededor(int x, int y)

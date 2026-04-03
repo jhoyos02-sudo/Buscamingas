@@ -40,6 +40,14 @@ namespace Coordinates{
             return !(c1==c2); //c1.x!=c2.x || c1.y!=c2.y;
         }
 
+        public static Coor operator +(Coor c1, Coor c2)
+        {
+            Coor a = new Coor();
+            a.x = c1.x + c2.x;
+            a.y = c1.y + c2.y;
+            return a;
+        }
+
         // añadir sobrecarga del operador +
 
         // añadir método pop que extrae una coordenada (la elimina) y la devuelve
