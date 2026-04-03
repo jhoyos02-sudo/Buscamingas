@@ -94,7 +94,7 @@ namespace Buscamingas
 
             public void MueveCursor(Coor dir)
             {
-                //cursor += dir;  (esto si hacemos una sobrecarga del operador += en la clase coor)
+                cursor += dir;  //(esto si hacemos una sobrecarga del operador += en la clase coor)
             }
 
             public void MarcaMina()
