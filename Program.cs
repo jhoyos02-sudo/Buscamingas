@@ -36,6 +36,11 @@ namespace Buscamingas
 
             public Tablero(int fils, int cols, int numMinas)
             {
+                this.fils = fils;
+                this.cols = cols;
+                this.nMinas = numMinas;
+                this.cursor = new Coor(0, 0);
+
                 casilla = new Casilla[fils,cols];
                 for (int i = 0; i < fils; i++)
                 {
@@ -66,6 +71,9 @@ namespace Buscamingas
 
             public Tablero(int fils, int cols, (int, int)[] posMinas)
             {
+                this.fils = fils;
+                this.cols = cols;
+                this.cursor = new Coor(0, 0);
                 casilla = new Casilla[fils, cols];
                 for (int i = 0; i < fils; i++)
                 {
@@ -89,8 +97,41 @@ namespace Buscamingas
 
             public void Render(bool bomba)
             {
+                Console.Clear();
+                Console.WriteLine($" Minas: {nMinas - nMarcadas}");
+                Console.WriteLine();
 
+                for (int i = 0; i < fils; i++)
+                {
+                    Console.Write(" ");
+                    for (int j = 0; j < cols; j++)
+                    {
+                        if (i == cursor.X && j == cursor.Y)
+                        {
+                            Console.BackgroundColor = ConsoleColor.Gray;
+                            Console.ForegroundColor = ConsoleColor.Black;
+                        }
+
+                        if (debug || bomba)
+                        {
+                            if (casilla[i, j].mina && casilla[i, j].estado != 'x')
+                                Console.Write('M');
+                            else
+                                Console.Write(casilla[i, j].estado);
+                        }
+                        else
+                        {
+                            Console.Write(casilla[i, j].estado);
+                        }
+
+                        Console.ResetColor();
+                        Console.Write(' ');
+                    }
+                    Console.WriteLine();
+                }
+                Console.WriteLine();
             }
+
 
             public void MueveCursor(Coor dir)
             {
@@ -142,8 +183,23 @@ namespace Buscamingas
 
             private int MinasAlrededor(int x, int y)
             {
-                // usar clamp
-                return 0;
+                int numMinas = 0;
+
+                int xMin = Math.Clamp(x - 1, 0, fils - 1);
+                int xMax = Math.Clamp(x + 1, 0, fils - 1);
+                int yMin = Math.Clamp(y - 1, 0, cols - 1);
+                int yMax = Math.Clamp(y + 1, 0, cols - 1);
+
+                for (int i = xMin; i <= xMax; i++)
+                {
+                    for (int j = yMin; j <= yMax; j++)
+                    {
+                        if (casilla[i, j].mina)
+                            numMinas++;
+                    }
+                }
+
+                return numMinas;
             }
 
             private void DescubreAdyacentes()
@@ -199,7 +255,9 @@ namespace Buscamingas
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello, World!");
+            Tablero t = new Tablero(9, 9, 10);
+                t.Render(false);
+                Console.ReadKey();
         }
     }
 }
