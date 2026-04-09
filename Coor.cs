@@ -48,10 +48,7 @@ namespace Coordinates{
             return a;
         }
 
-        // añadir sobrecarga del operador +
-
         // añadir método pop que extrae una coordenada (la elimina) y la devuelve
-
     }
 
 
