@@ -208,6 +208,8 @@ namespace Buscamingas
             {
                 // importante hacer una separación entre visitadas y pendientes (con dos arrays de posiciones)
 
+                int i = 0, j = 0;
+                
                 SetCoor pendientes = new SetCoor(casilla.Length);
                 SetCoor visitadas= new SetCoor(casilla.Length);
 
