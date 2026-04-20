@@ -1,7 +1,9 @@
 ﻿// Javier Hoyos Giunta
 // Hector Prous Arroyo
 using System.Drawing;
+using System.Reflection.Metadata;
 using Coordinates;
+using SetArray;
 
 namespace Buscamingas
 {
@@ -205,6 +207,16 @@ namespace Buscamingas
             private void DescubreAdyacentes()
             {
                 // importante hacer una separación entre visitadas y pendientes (con dos arrays de posiciones)
+
+                SetCoor pendientes = new SetCoor(casilla.Length);
+                SetCoor visitadas= new SetCoor(casilla.Length);
+
+                pendientes.Add(cursor);
+
+                while (pendientes.GetOc() > 0)
+                {
+
+                }
             }
 
             public bool Terminado()
@@ -264,7 +276,7 @@ namespace Buscamingas
                     t.ClickCasilla();
                     break;
             }
-            return true;
+            return t.ClickCasilla();
         }
 
         public static char LeeInput()

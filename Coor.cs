@@ -47,8 +47,6 @@ namespace Coordinates{
             a.y = c1.y + c2.y;
             return a;
         }
-
-        // añadir método pop que extrae una coordenada (la elimina) y la devuelve
     }
 
 
