@@ -231,7 +231,39 @@ namespace Buscamingas
 
         bool ProcesaInput(Tablero t, char c) 
         {
+            Coor up, down, left, right;
 
+            left = new Coor(-1, 0);
+            right = new Coor(1, 0);
+            up = new Coor(0, 1);
+            down = new Coor(0, -1);
+            
+            switch (c) 
+            {
+                case 'l':
+                    t.MueveCursor(left);
+                    break;
+
+                case 'u':
+                    t.MueveCursor(up);
+                    break;
+
+                case 'r':
+                    t.MueveCursor(right);
+                    break;
+
+                case 'd':
+                    t.MueveCursor(down);
+                    break;
+
+                case 'x':
+                    t.MarcaMina();
+                    break;
+
+                case 'c':
+                    t.ClickCasilla();
+                    break;
+            }
             return true;
         }
 
