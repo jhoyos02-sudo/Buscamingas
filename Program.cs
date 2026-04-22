@@ -137,7 +137,8 @@ namespace Buscamingas
 
             public void MueveCursor(Coor dir)
             {
-                cursor += dir;  
+                cursor.X = Math.Clamp(cursor.X + dir.X, 0, fils - 1);
+                cursor.Y = Math.Clamp(cursor.Y + dir.Y, 0, cols - 1);
             }
 
             public void MarcaMina()
@@ -175,7 +176,7 @@ namespace Buscamingas
 
                         else
                         {
-                            char c = (char)minas;
+                            char c = (char)(minas + '0');
                             casilla[cursor.X, cursor.Y].estado = c;
                         }
                     }
@@ -208,16 +209,41 @@ namespace Buscamingas
             {
                 // importante hacer una separación entre visitadas y pendientes (con dos arrays de posiciones)
 
-                int i = 0, j = 0;
-                
                 SetCoor pendientes = new SetCoor(casilla.Length);
-                SetCoor visitadas= new SetCoor(casilla.Length);
+                SetCoor visitadas = new SetCoor(casilla.Length);
 
                 pendientes.Add(cursor);
 
                 while (pendientes.GetOc() > 0)
                 {
+                    Coor actual = pendientes.PopElem();
+                    visitadas.Add(actual);
 
+                    if (MinasAlrededor(actual.X, actual.Y) == 0)
+                    {
+                        int xMin = Math.Clamp(actual.X - 1, 0, fils - 1);
+                        int xMax = Math.Clamp(actual.X + 1, 0, fils - 1);
+                        int yMin = Math.Clamp(actual.Y - 1, 0, cols - 1);
+                        int yMax = Math.Clamp(actual.Y + 1, 0, cols - 1);
+
+                        for (int i = xMin; i <= xMax; i++)
+                        {
+                            for (int j = yMin; j <= yMax; j++)
+                            {
+                                Coor ady = new Coor(i, j);
+
+                                if (!visitadas.Belongs(ady) && !pendientes.Belongs(ady))
+                                {
+                                    pendientes.Add(ady);
+
+                                    if (MinasAlrededor(i, j) == 0)
+                                    {
+                                        casilla[i, j].estado = '.';
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -230,7 +256,7 @@ namespace Buscamingas
                 {
                     while (j < cols)
                     {
-                        if (!casilla[cursor.X, cursor.Y].mina && casilla[cursor.X, cursor.Y].estado == 'o')
+                        if (!casilla[i,j].mina && casilla[i,j].estado == 'o')
                         {
                             ok = false;
                         }
@@ -302,8 +328,37 @@ namespace Buscamingas
         static void Main(string[] args)
         {
             Tablero t = new Tablero(9, 9, 10);
-                t.Render(false);
-                Console.ReadKey();
+            bool bomba = false;
+            char input = ' ';
+            t.activateDEBUG();
+
+            Coor left = new Coor(0, -1);
+            Coor right = new Coor(0, 1);
+            Coor up = new Coor(-1, 0);
+            Coor down = new Coor(1, 0);
+
+            t.Render(false);
+
+            while (input != 'q' && !bomba && !t.Terminado())
+            {
+                input = LeeInput();
+
+                if (input == 'l') t.MueveCursor(left);
+                else if (input == 'r') t.MueveCursor(right);
+                else if (input == 'u') t.MueveCursor(up);
+                else if (input == 'd') t.MueveCursor(down);
+                else if (input == 'x') t.MarcaMina();
+                else if (input == 'c') bomba = t.ClickCasilla();
+
+                t.Render(bomba);
+            }
+
+            if (bomba)
+                Console.WriteLine("Has perdido!");
+            else if (t.Terminado())
+                Console.WriteLine("Has ganado!");
+            else
+                Console.WriteLine("Has abandonado!");
         }
     }
 }

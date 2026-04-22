@@ -58,7 +58,7 @@ namespace SetArray
 
         public Coor PopElem()
         {
-            Coor c = coors[oc];
+            Coor c = coors[oc - 1];
             oc--;
             return c;
         }
