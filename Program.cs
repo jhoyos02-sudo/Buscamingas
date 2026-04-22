@@ -11,7 +11,7 @@ namespace Buscamingas
 {
     internal class Program
     {
-        class Tablero
+        public class Tablero
         {
             // Casillas de juego
             private struct Casilla
@@ -48,13 +48,13 @@ namespace Buscamingas
                 this.primerClick = true;
                 this.debug = false;
 
-                casilla = new Casilla[fils,cols];
+                casilla = new Casilla[fils, cols];
                 for (int i = 0; i < fils; i++)
                 {
                     for (int j = 0; j < cols; j++)
                     {
                         casilla[i, j].estado = 'o';
-                        casilla[i,j].mina = false;
+                        casilla[i, j].mina = false;
                     }
                 }
                 ponMinas1(numMinas);
@@ -142,7 +142,7 @@ namespace Buscamingas
                                 Console.BackgroundColor = ConsoleColor.Red;
                                 Console.Write('*');
                             }
-                                
+
                             else
                                 Console.Write(casilla[i, j].estado);
                         }
@@ -180,7 +180,7 @@ namespace Buscamingas
                         casilla[cursor.X, cursor.Y].estado = 'o';
                         nMarcadas--;
                     }
-                }         
+                }
             }
 
             public bool ClickCasilla()
@@ -233,7 +233,7 @@ namespace Buscamingas
 
             private int MinasAlrededor(int x, int y)
             {
-                
+
                 int numMinas = 0;
 
                 int xMin = Math.Clamp(x - 1, 0, fils - 1);
@@ -270,6 +270,7 @@ namespace Buscamingas
                     Coor actual = pendientes.PopElem();
                     visitadas.Add(actual);
 
+
                     if (MinasAlrededor(actual.X, actual.Y) == 0)
                     {
                         int xMin = Math.Clamp(actual.X - 1, 0, fils - 1);
@@ -286,7 +287,12 @@ namespace Buscamingas
                                 if (!visitadas.Belongs(ady))
                                 {
                                     pendientes.Add(ady);
-                                    casilla[i, j].estado = (char)(MinasAlrededor(i, j)+'0');
+                                    if (casilla[i, j].estado == 'x')
+                                    {
+                                        nMarcadas--;
+                                    }
+                                    casilla[i, j].estado = (char)(MinasAlrededor(i, j) + '0');
+
                                 }
                             }
                         }
@@ -303,7 +309,7 @@ namespace Buscamingas
                 {
                     while (j < cols)
                     {
-                        if (!casilla[i,j].mina && (casilla[i,j].estado == 'o' || casilla[i, j].estado == 'x'))
+                        if (!casilla[i, j].mina && (casilla[i, j].estado == 'o' || casilla[i, j].estado == 'x'))
                         {
                             ok = false;
                         }
@@ -312,26 +318,26 @@ namespace Buscamingas
                     i++;
                     j = 0;
                 }
-                return ok;                
+                return ok;
             }
 
             public string CodificaTablero()
             {
                 int[] listaMinas = new int[nMinas];
                 string lTab = "";
-                int pos = 0, k = 0 ;
+                int pos = 0, k = 0;
 
                 // añade estado de todas las casillas
-                for (int i = 0; i < casilla.Length; i++) 
+                for (int i = 1; i < casilla.GetLength(0); i++)
                 {
-                    for (int j = 0; j < casilla.Length; j++)
+                    for (int j = 1; j < casilla.GetLength(1); j++)
                     {
-                        lTab += casilla[i, j].estado;
+                        lTab += (char)casilla[i, j].estado;
                         if (casilla[i, j].mina)
                         {
                             lTab += '#'; // para marcar que esta casilla es mina
                         }
-                        
+
                     }
                     lTab += '&'; // para marcar salto de línea
                 }
@@ -369,18 +375,29 @@ namespace Buscamingas
                 {
                     color = listaColores[c - 48];
                 }
-                    
+
                 return color;
             }
 
             public void GuardaPartida(string nombreArchivo)
             {
                 StreamWriter sw = new StreamWriter(nombreArchivo);
-                sw.WriteLine(CodificaTablero());
+                try
+                {
+                    sw.WriteLine(CodificaTablero());
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Error: {e.Message}");
+                }
+                finally
+                {
+                    if (sw != null) sw.Close();
+                }
             }
         }
 
-        static bool ProcesaInput(Tablero t, char c) 
+        static bool ProcesaInput(Tablero t, char c)
         {
             Coor up, down, left, right;
             bool bomba = false;
@@ -389,8 +406,8 @@ namespace Buscamingas
             right = new Coor(0, 1);
             up = new Coor(-1, 0);
             down = new Coor(1, 0);
-            
-            switch (c) 
+
+            switch (c)
             {
                 case 'l':
                     t.MueveCursor(left);
@@ -414,7 +431,7 @@ namespace Buscamingas
 
                 case 'c':
                     bomba = t.ClickCasilla();
-                    
+
                     break;
 
                 case 'v':
@@ -443,6 +460,90 @@ namespace Buscamingas
             return d;
         }
 
+        static void Juego(Tablero t, char input)
+        {
+            bool bomba = false;
+            t.Render(false);
+
+            while (input != 'q' && !bomba && !t.Terminado())
+            {
+                input = LeeInput();
+                bomba = ProcesaInput(t, input);
+                t.Render(bomba);
+            }
+
+            if (bomba) Console.WriteLine("BOOM!");
+            else if (t.Terminado()) Console.WriteLine("¡Victoria!");
+            else
+            {
+                Console.Write("Has abandonado... ¿Deseas guardar la partida? (s/n): ");
+                string st = Console.ReadLine();
+
+                if (st == "s")
+                {
+                    Console.Write("Introduce el nombre con el que quieres que se guarde: ");
+                    string nombre = Console.ReadLine();
+                    t.GuardaPartida(nombre);
+                }
+
+            }
+        }
+
+        public static Tablero RecuperaPartida(string nombreArchivo)
+        {
+            Tablero t = null;
+            int i = 0, j = 0;
+            bool salto = false, mina = false, cursor = false;
+            char c = ' ';
+
+            StreamReader archivo = null;
+            try
+            {
+                archivo = new StreamReader(nombreArchivo);
+                while (!cursor)
+                {
+                    c = (char)archivo.Read();
+                    while (!salto)
+                    {
+                        if (c == '@')
+                        {
+                            cursor = true;
+                        }
+                        else
+                        {
+                            if (c == '&')
+                            {
+                                salto = true;
+                            }
+                            else
+                            {
+                                if (c == '#')
+                                {
+
+                                }
+                                else
+                                {
+                                    // aquí lee los estados de las casillas del archivo
+                                }
+                            }
+                        }
+                        j++;
+                    }
+                    i++;
+                }
+
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine($"Error: {e.Message}");
+            }
+            finally 
+            { 
+                if (archivo != null) archivo.Close();
+            }
+
+            return t;
+        }
 
         static void Main(string[] args)
         {
@@ -462,26 +563,27 @@ namespace Buscamingas
 
             if (ent == "1")
             {
-                t.Render(false);
-
-                while (input != 'q' && !bomba && !t.Terminado())
-                {
-                    input = LeeInput();
-                    bomba = ProcesaInput(t, input);
-                    t.Render(bomba);
-                }
-
-                if (bomba) Console.WriteLine("BOOM!");
-                else if (t.Terminado()) Console.WriteLine("¡Victoria!");
-                else Console.WriteLine("Has abandonado...");
+                Juego(t, input);
             }
+
             else if (ent == "2")
             {
+                Console.Write("Escribe el nombre del archivo de guardado de la partida: ");
+                string nombre = Console.ReadLine();
 
+                Tablero t2 = RecuperaPartida(nombre);
+
+                if (t2 != null)
+                {
+                    Juego(t2, input);
+                }
+                else Console.WriteLine("No se pudo recuperar la partida");
+                
             }
+
             else Console.WriteLine("Error : introduce 1 o 2");
 
-            
+
         }
     }
 }
