@@ -62,17 +62,32 @@ namespace Buscamingas
 
             private void ponMinas1(int nMinas)
             {
-                int i = 0;
-                while (i < nMinas)
+                // ponemos las minas en las primeras nMinas casillas de arriba abajo y de izq a drch
+                int count = 0;
+                for (int i = 0; i < fils && count < nMinas; i++)
                 {
-                    int x = rnd.Next(0, fils);
-                    int y = rnd.Next(0, cols);
-
-                    if (casilla[x, y].mina == false)
+                    for (int j = 0; j < cols && count < nMinas; j++)
                     {
-                        casilla[x,y].mina = true;
-                        i++;
+                        casilla[i, j].mina = true;
+                        count++;
                     }
+                }
+                //hacemos el shuffle solo para las primeras nMinas de arriba abajo y de izq a drch
+                count = 0;
+                for (int i = 0; i < nMinas; i++)
+                {
+                    int orMinaFil = i / cols;
+                    int orMinaCol = i % cols;
+
+                    // elegimos una casilla aleatoria desde i (mina actual) hasta el final del tablero
+                    int r = rnd.Next(i, fils * cols);
+                    int rMinaFil = r / cols;
+                    int rMinaCol = r % cols;
+
+                    // intercambiamos mina original por la mina randomizada y viceversa
+                    bool registerOrMina = casilla[orMinaFil, orMinaCol].mina;
+                    casilla[orMinaFil, orMinaCol].mina = casilla[rMinaFil, rMinaCol].mina;
+                    casilla[rMinaFil, rMinaCol].mina = registerOrMina;
                 }
             }
 
@@ -218,6 +233,7 @@ namespace Buscamingas
 
             private int MinasAlrededor(int x, int y)
             {
+                
                 int numMinas = 0;
 
                 int xMin = Math.Clamp(x - 1, 0, fils - 1);
@@ -244,8 +260,6 @@ namespace Buscamingas
 
             private void DescubreAdyacentes()
             {
-                // importante hacer una separación entre visitadas y pendientes (con dos arrays de posiciones)
-
                 SetCoor pendientes = new SetCoor(casilla.Length);
                 SetCoor visitadas = new SetCoor(casilla.Length);
 
