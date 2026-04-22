@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Reflection.Metadata;
 using Coordinates;
 using SetArray;
+using System.IO;
 
 namespace Buscamingas
 {
@@ -302,9 +303,29 @@ namespace Buscamingas
 
             public string CodificaTablero()
             {
-                string lTab;
+                int[] listaMinas = new int[nMinas];
+                string lTab = "";
+                int pos = 0, k = 0 ;
 
-                lTab = string.Empty;
+                // añade estado de todas las casillas
+                for (int i = 0; i < casilla.Length; i++) 
+                {
+                    for (int j = 0; j < casilla.Length; j++)
+                    {
+                        lTab += casilla[i, j].estado;
+                        if (casilla[i, j].mina)
+                        {
+                            lTab += '#'; // para marcar que esta casilla es mina
+                        }
+                        
+                    }
+                    lTab += '&'; // para marcar salto de línea
+                }
+
+                lTab += '@'; // para marcar cambio de categoría
+
+                // añade cursor actual
+                lTab += cursor.X + cursor.Y;
 
                 return lTab;
             }
@@ -336,6 +357,12 @@ namespace Buscamingas
                 }
                     
                 return color;
+            }
+
+            public void GuardaPartida(string nombreArchivo)
+            {
+                StreamWriter sw = new StreamWriter(nombreArchivo);
+                sw.WriteLine(CodificaTablero());
             }
         }
 
@@ -402,24 +429,45 @@ namespace Buscamingas
             return d;
         }
 
+
         static void Main(string[] args)
         {
             Tablero t = new Tablero(9, 9, 10);
             bool bomba = false;
             char input = ' ';
+            string ent;
 
-            t.Render(false);
+            Console.WriteLine("BUSCAMINAS");
+            Console.WriteLine();
+            Console.WriteLine("1. Nueva Partida");
+            Console.WriteLine("2. Continuar Partida");
+            Console.WriteLine();
+            Console.Write("Escribe una opción (1 o 2): ");
 
-            while (input != 'q' && !bomba && !t.Terminado())
+            ent = Console.ReadLine();
+
+            if (ent == "1")
             {
-                input = LeeInput();
-                bomba = ProcesaInput(t, input);
-                t.Render(bomba);
-            }
+                t.Render(false);
 
-            if (bomba) Console.WriteLine("BOOM!");
-            else if (t.Terminado()) Console.WriteLine("¡Victoria!");
-            else Console.WriteLine("Has abandonado...");
+                while (input != 'q' && !bomba && !t.Terminado())
+                {
+                    input = LeeInput();
+                    bomba = ProcesaInput(t, input);
+                    t.Render(bomba);
+                }
+
+                if (bomba) Console.WriteLine("BOOM!");
+                else if (t.Terminado()) Console.WriteLine("¡Victoria!");
+                else Console.WriteLine("Has abandonado...");
+            }
+            else if (ent == "2")
+            {
+
+            }
+            else Console.WriteLine("Error : introduce 1 o 2");
+
+            
         }
     }
 }
