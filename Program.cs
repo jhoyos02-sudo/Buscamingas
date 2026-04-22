@@ -1,5 +1,6 @@
 ﻿// Javier Hoyos Giunta
 // Hector Prous Arroyo
+using System.ComponentModel.Design;
 using System.Drawing;
 using System.Reflection.Metadata;
 using Coordinates;
@@ -41,7 +42,10 @@ namespace Buscamingas
                 this.fils = fils;
                 this.cols = cols;
                 this.nMinas = numMinas;
+                this.nMarcadas = 0;
                 this.cursor = new Coor(0, 0);
+                this.primerClick = true;
+                this.debug = false;
 
                 casilla = new Casilla[fils,cols];
                 for (int i = 0; i < fils; i++)
@@ -94,7 +98,7 @@ namespace Buscamingas
 
             public void activateDEBUG()
             {
-                debug = true;
+                debug = !debug;
             }
 
             public void Render(bool bomba)
@@ -114,10 +118,15 @@ namespace Buscamingas
                             Console.ForegroundColor = ConsoleColor.Black;
                         }
 
+                        Console.ForegroundColor = ProcesaPigmentos(casilla[i, j].estado);
                         if (debug || bomba)
                         {
                             if (casilla[i, j].mina && casilla[i, j].estado != 'x')
-                                Console.Write('M');
+                            {
+                                Console.BackgroundColor = ConsoleColor.Red;
+                                Console.Write('*');
+                            }
+                                
                             else
                                 Console.Write(casilla[i, j].estado);
                         }
@@ -143,31 +152,47 @@ namespace Buscamingas
 
             public void MarcaMina()
             {
-                if (casilla[cursor.X, cursor.Y].estado == 'o')
+                if (nMarcadas < nMinas)
                 {
-                    casilla[cursor.X, cursor.Y].estado = '*';
-                    nMarcadas++;
-                }
-                else if (casilla[cursor.X, cursor.Y].estado == '*') 
-                {
-                    casilla[cursor.X, cursor.Y].estado = 'o'; 
-                    nMarcadas--;
-                }
-
+                    if (casilla[cursor.X, cursor.Y].estado == 'o')
+                    {
+                        casilla[cursor.X, cursor.Y].estado = 'x';
+                        nMarcadas++;
+                    }
+                    else if (casilla[cursor.X, cursor.Y].estado == 'x')
+                    {
+                        casilla[cursor.X, cursor.Y].estado = 'o';
+                        nMarcadas--;
+                    }
+                }         
             }
 
             public bool ClickCasilla()
             {
                 if (casilla[cursor.X, cursor.Y].estado == 'o')
                 {
+                    int minas = MinasAlrededor(cursor.X, cursor.Y);
                     if (casilla[cursor.X, cursor.Y].mina)
                     {
-                        casilla[cursor.X, cursor.Y].estado = 'x';
+                        if (primerClick)
+                        {
+                            casilla[cursor.X, cursor.Y].mina = false;
+                            if (minas == 0)
+                            {
+                                casilla[cursor.X, cursor.Y].estado = '.';
+                                DescubreAdyacentes();
+                            }
+                            else
+                            {
+                                char c = (char)(minas + '0');
+                                casilla[cursor.X, cursor.Y].estado = c;
+                            }
+                            ponMinas1(1);
+                        }
+                        else casilla[cursor.X, cursor.Y].estado = '*';
                     }
                     else
                     {
-                        int minas = MinasAlrededor(cursor.X, cursor.Y);
-
                         if (minas == 0)
                         {
                             casilla[cursor.X, cursor.Y].estado = '.';
@@ -181,6 +206,12 @@ namespace Buscamingas
                         }
                     }
                 }
+
+                if (primerClick)
+                {
+                    primerClick = false;
+                }
+
                 return casilla[cursor.X, cursor.Y].mina;
             }
 
@@ -200,6 +231,11 @@ namespace Buscamingas
                         if (casilla[i, j].mina)
                             numMinas++;
                     }
+                }
+
+                if (casilla[x, y].mina)
+                {
+                    numMinas--;
                 }
 
                 return numMinas;
@@ -232,14 +268,10 @@ namespace Buscamingas
                             {
                                 Coor ady = new Coor(i, j);
 
-                                if (!visitadas.Belongs(ady) && !pendientes.Belongs(ady))
+                                if (!visitadas.Belongs(ady))
                                 {
                                     pendientes.Add(ady);
-
-                                    if (MinasAlrededor(i, j) == 0)
-                                    {
-                                        casilla[i, j].estado = '.';
-                                    }
+                                    casilla[i, j].estado = (char)(MinasAlrededor(i, j)+'0');
                                 }
                             }
                         }
@@ -256,7 +288,7 @@ namespace Buscamingas
                 {
                     while (j < cols)
                     {
-                        if (!casilla[i,j].mina && casilla[i,j].estado == 'o')
+                        if (!casilla[i,j].mina && (casilla[i,j].estado == 'o' || casilla[i, j].estado == 'x'))
                         {
                             ok = false;
                         }
@@ -267,16 +299,55 @@ namespace Buscamingas
                 }
                 return ok;                
             }
+
+            public string CodificaTablero()
+            {
+                string lTab;
+
+                lTab = string.Empty;
+
+                return lTab;
+            }
+
+            private ConsoleColor ProcesaPigmentos(char c)
+            {
+                ConsoleColor color;
+                ConsoleColor[] listaColores = (ConsoleColor[])ConsoleColor.GetValues(typeof(ConsoleColor));
+
+                if (c == 'o')
+                {
+                    color = ConsoleColor.Gray;
+                }
+                else if (c == 'x')
+                {
+                    color = ConsoleColor.Red;
+                }
+                else if (c == '.')
+                {
+                    color = ConsoleColor.Black;
+                }
+                else if (c == '*')
+                {
+                    color = ConsoleColor.White;
+                }
+                else
+                {
+                    color = listaColores[c - 48];
+                }
+                    
+                return color;
+            }
         }
 
-        bool ProcesaInput(Tablero t, char c) 
+        static bool ProcesaInput(Tablero t, char c) 
         {
             Coor up, down, left, right;
+            bool bomba = false;
 
-            left = new Coor(-1, 0);
-            right = new Coor(1, 0);
-            up = new Coor(0, 1);
-            down = new Coor(0, -1);
+            left = new Coor(0, -1);
+            right = new Coor(0, 1);
+            up = new Coor(-1, 0);
+            down = new Coor(1, 0);
             
             switch (c) 
             {
@@ -301,10 +372,15 @@ namespace Buscamingas
                     break;
 
                 case 'c':
-                    t.ClickCasilla();
+                    bomba = t.ClickCasilla();
+                    
+                    break;
+
+                case 'v':
+                    t.activateDEBUG();
                     break;
             }
-            return t.ClickCasilla();
+            return bomba;
         }
 
         public static char LeeInput()
@@ -320,6 +396,7 @@ namespace Buscamingas
                 case "Spacebar": d = 'c'; break; // click para destapar
                 case "Enter": d = 'x'; break; // marca/desmarca mina
                 case "Escape": d = 'q'; break; // abandonar partida
+                case "D": d = 'v'; break; // activar y desactivar debug
             }
             while (Console.KeyAvailable) Console.ReadKey().Key.ToString();
             return d;
@@ -330,35 +407,19 @@ namespace Buscamingas
             Tablero t = new Tablero(9, 9, 10);
             bool bomba = false;
             char input = ' ';
-            t.activateDEBUG();
-
-            Coor left = new Coor(0, -1);
-            Coor right = new Coor(0, 1);
-            Coor up = new Coor(-1, 0);
-            Coor down = new Coor(1, 0);
 
             t.Render(false);
 
             while (input != 'q' && !bomba && !t.Terminado())
             {
                 input = LeeInput();
-
-                if (input == 'l') t.MueveCursor(left);
-                else if (input == 'r') t.MueveCursor(right);
-                else if (input == 'u') t.MueveCursor(up);
-                else if (input == 'd') t.MueveCursor(down);
-                else if (input == 'x') t.MarcaMina();
-                else if (input == 'c') bomba = t.ClickCasilla();
-
+                bomba = ProcesaInput(t, input);
                 t.Render(bomba);
             }
 
-            if (bomba)
-                Console.WriteLine("Has perdido!");
-            else if (t.Terminado())
-                Console.WriteLine("Has ganado!");
-            else
-                Console.WriteLine("Has abandonado!");
+            if (bomba) Console.WriteLine("BOOM!");
+            else if (t.Terminado()) Console.WriteLine("¡Victoria!");
+            else Console.WriteLine("Has abandonado...");
         }
     }
 }
