@@ -84,10 +84,18 @@ namespace Buscamingas
                     int rMinaFil = r / cols;
                     int rMinaCol = r % cols;
 
+                    while (casilla[rMinaFil, rMinaCol].estado != 'o')
+                    {
+                        r = rnd.Next(i, fils * cols);
+                        rMinaFil = r / cols;
+                        rMinaCol = r % cols;
+                    }
+
                     // intercambiamos mina original por la mina randomizada y viceversa
                     bool registerOrMina = casilla[orMinaFil, orMinaCol].mina;
                     casilla[orMinaFil, orMinaCol].mina = casilla[rMinaFil, rMinaCol].mina;
                     casilla[rMinaFil, rMinaCol].mina = registerOrMina;
+
                 }
             }
 
@@ -345,7 +353,8 @@ namespace Buscamingas
                 lTab += '@'; // para marcar cambio de categoría
 
                 // añade cursor actual
-                lTab += cursor.X + cursor.Y;
+                lTab += cursor.X;
+                lTab += +cursor.Y;
 
                 return lTab;
             }
@@ -519,11 +528,15 @@ namespace Buscamingas
                             {
                                 if (c == '#')
                                 {
-
+                                       
                                 }
                                 else
                                 {
                                     // aquí lee los estados de las casillas del archivo
+
+                                    // temporalmente para que no se quede infinitamente:
+                                    cursor = true;
+                                    salto = true;
                                 }
                             }
                         }
