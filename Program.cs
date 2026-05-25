@@ -390,9 +390,11 @@ namespace Buscamingas
 
             public void GuardaPartida(string nombreArchivo)
             {
-                StreamWriter sw = new StreamWriter(nombreArchivo);
+                StreamWriter sw = null;
                 try
                 {
+                    new StreamWriter(nombreArchivo);
+
                     sw.WriteLine(CodificaTablero());
                 }
                 catch (Exception e)
